@@ -1,0 +1,60 @@
+1. System Architecture
+
+**Pipeline:**
+
+User Prompt → LLM (Gemini API) → Query Generator → PostgreSQL DB → Data Processor → Visualization Layer (Plotly/Chart.js) → React/Next.js Dashboard.
+
+2. Functional Modules
+
+A. Input Layer
+
+- **Text Input Box** with autocomplete suggestions.
+- **Validation Engine** for vague queries.
+
+B. Query Processing
+
+- **LLM Integration:** Gemini API for NL → SQL.
+- **Query Optimizer:** Indexing, caching, partitioning for large datasets.
+- **Error Handling:** Graceful fallback (“Unable to answer with current data”).
+
+C. Data Layer
+
+- **Database:** PostgreSQL with optimized schema.
+- **Schema:**
+    - timestamp, video_id, category, language, region, duration_sec, views, likes, comments, shares, sentiment_score, ads_enabled.
+- **ETL Pipeline:** Preprocess CSV → DB ingestion.
+- **Data Validation:** Ensure integrity and consistency.
+
+D. Visualization Layer
+
+- **Chart Selection Rules:**
+    - Time-series → Line chart.
+    - Category comparison → Bar chart.
+    - Sentiment distribution → Heatmap/Pie chart.
+    - Engagement correlation → Scatter plot.
+- **Libraries:** Plotly.js, Chart.js.
+- **Interactivity:** Hover tooltips, zoom, filter, drill-down.
+
+E. Dashboard Layer
+
+- **Frontend:** React.js + Next.js.
+- **UI/UX:** Responsive, modern design.
+- **Features:**
+- Loading state indicator.
+- Export to PDF/CSV.
+- Follow-up queries (“Filter by region”).
+
+3. Non-Functional Requirements
+
+- **Performance:** <5s query response.
+- **Scalability:** Handle 10 lakh+ rows.
+- **Security:** JWT authentication, HTTPS, role-based access.
+- **Reliability:** Error handling, retry logic.
+- **Maintainability:** Modular codebase, GitHub repo.
+
+4. Deliverables
+
+- Web app prototype.
+- GitHub repository (public).
+- 10-min presentation with 3 progressively complex queries.
+- Architecture diagram + workflow pipeline.

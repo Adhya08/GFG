@@ -1,0 +1,56 @@
+1. Vision & Mission
+
+**Vision:** Democratize access to YouTube content analytics by enabling instant, conversational dashboards powered by AI.
+
+**Mission:** Deliver actionable insights at the speed of conversation, empowering non-technical executives and strategists to make data-driven decisions without technical barriers.
+
+2. Objectives
+
+- **Accessibility:** Remove the need for SQL/BI expertise.
+- **Speed:** Generate dashboards in <5 seconds.
+- **Accuracy:** Ensure ≥90% correct query-to-chart mapping.
+- **Scalability:** Seamlessly handle 10 lakh+ dataset entries.
+- **Interactivity:** Enable filtering, drill-downs, and follow-up queries.
+- **Monetization Insights:** Provide clear visibility into ads-enabled vs engagement metrics.
+
+3. Scope
+
+- **In Scope:**
+    - Natural language query → dashboard generation.
+    - Automated chart type selection.
+    - Sentiment analysis visualization.
+    - Monetization impact analysis.
+    - CSV upload for custom datasets.
+    - Export dashboards (PDF/CSV).
+- **Out of Scope (Phase 1):**
+- Predictive analytics (forecasting).
+- Real-time YouTube API integration.
+- Advanced AI-driven recommendations.
+
+4. Target Users
+
+- **CXOs/Executives:** Quick insights without technical skills.
+- **Marketing Teams:** Regional sentiment and engagement analysis.
+- **Content Strategists:** Optimize video formats and monetization.
+
+5. Key Features
+
+- Conversational query input (text + optional voice).
+- Automated SQL generation via LLM.
+- Dynamic chart selection (line, bar, pie, scatter, heatmap).
+- Interactive dashboard with filters, zoom, drill-down.
+- Sentiment & monetization insights.
+- Follow-up queries (“chat with the dashboard”).
+- Export options (PDF/CSV).
+
+6. Success Metrics
+
+- **Accuracy:** ≥90% correct SQL generation.
+- **Performance:** <5s dashboard generation.
+- **Adoption:** ≥70% weekly active usage among target users.
+- **Satisfaction:** ≥80% positive UX feedback.
+- **Scalability:** Handle 10 lakh+ rows seamlessly.
+
+7. Risks & Mitigation
+
+![image.png](attachment:53fd0fd7-9e4d-467d-948b-c71e2ceb8d5b:image.png)
