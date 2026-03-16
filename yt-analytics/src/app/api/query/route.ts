@@ -50,12 +50,16 @@ Do NOT just default to 'bar'. You must choose based on these strict rules:
 3. 'scatter': Use ONLY for comparing two numerical/engagement metrics (e.g., likes vs duration, views vs shares) to see correlation.
 4. 'bar': Use for comparing distinct categories side-by-side (e.g., average views by category, total likes by region), EXCEPT if 'pie' makes more sense for a percentage breakdown.
 
+If the user's query asks to "predict", "forecast", or estimate future values, set "isPredictive" to true and extract the requested number of periods (default is 7) into "predictionHorizon".
+
 Return the result STRICTLY as a JSON object (and nothing else, no markdown) in the following format. Ensure that the JSON is valid and contains NO COMMENTS:
 {
   "sql": "SELECT ...",
   "chartType": "<INSERT_CHART_TYPE_HERE>",
   "xAxisLabel": "<Name of the X-axis column>",
-  "yAxisLabel": "<Name of the Y-axis column>"
+  "yAxisLabel": "<Name of the Y-axis column>",
+  "isPredictive": false,
+  "predictionHorizon": 7
 }
 `;
 
@@ -74,11 +78,80 @@ Return the result STRICTLY as a JSON object (and nothing else, no markdown) in t
 
     // 2. Execute SQL Query
     const stmt = db.prepare(aiResponse.sql);
-    let dbData = [];
+    let dbData: any[] = [];
     try {
         dbData = stmt.all();
     } catch(e: any) {
         return NextResponse.json({ error: "Failed to execute generated SQL: " + e.message, generatedSql: aiResponse.sql }, { status: 400 });
+    }
+
+    let isPredictive = aiResponse.isPredictive;
+    let horizon = aiResponse.predictionHorizon || 7;
+    let forecastError = null;
+
+    if (isPredictive) {
+        if (dbData.length < 5) {
+            forecastError = "Insufficient data for reliable forecasting. Please upload more historical data.";
+            isPredictive = false;
+        } else {
+            const keys = Object.keys(dbData[0]);
+            let dateKey = aiResponse.xAxisLabel;
+            let numericKey = aiResponse.yAxisLabel;
+            if (!keys.includes(dateKey)) dateKey = keys[0];
+            if (!keys.includes(numericKey)) numericKey = keys[1] || keys[0];
+
+            const n = dbData.length;
+            let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+            dbData.forEach((row: any, i: number) => {
+                const x = i;
+                const y = Number(row[numericKey]) || 0;
+                sumX += x;
+                sumY += y;
+                sumXY += x * y;
+                sumX2 += x * x;
+            });
+
+            const denominator = (n * sumX2 - sumX * sumX);
+            let m = 0, b = 0;
+            if (denominator !== 0) {
+                m = (n * sumXY - sumX * sumY) / denominator;
+                b = (sumY - m * sumX) / n;
+            } else {
+                b = sumY / n;
+            }
+
+            const lastDateRaw = String(dbData[n - 1][dateKey]);
+            let lastDate = new Date(lastDateRaw);
+            if (isNaN(lastDate.getTime())) lastDate = new Date();
+
+            let newData = dbData.map((d: any) => ({
+                [dateKey]: String(d[dateKey] || ''),
+                Actual: Number(d[numericKey]) as number | null,
+                Predicted: null as number | null
+            }));
+
+            // Overlap point to connect the lines visually
+            newData[n-1].Predicted = newData[n-1].Actual;
+
+            for (let step = 1; step <= horizon; step++) {
+                const x = n - 1 + step;
+                const yPred = Math.max(0, Math.round(m * x + b)); // Ensure non-negative predictions if appropriate
+                const nextDate = new Date(lastDate);
+                nextDate.setDate(nextDate.getDate() + step);
+                
+                const formattedDate = nextDate.toISOString().split('T')[0];
+
+                newData.push({
+                   [dateKey]: formattedDate,
+                   Actual: null,
+                   Predicted: yPred
+                });
+            }
+
+            dbData = newData;
+            aiResponse.xAxisLabel = dateKey;
+            aiResponse.chartType = 'line'; // Enforce line chart for predictions
+        }
     }
 
     // 3. Prompt Gemini to generate insights based on the data
@@ -99,6 +172,8 @@ Keep the insights short, precise, and data-driven.
 Return 3-5 bullet point insights based on the following data data.
 
 User's original question: "${query}"
+
+${isPredictive ? "CRITICAL: The data includes a 'Predicted' column for the next " + horizon + " periods. You MUST include Forecast Insights about the expected future trends, peaks, or drops based on this predicted data." : ""}
 
 Data:
 ${JSON.stringify(dbData.slice(0, 50))}
@@ -127,7 +202,9 @@ Return your response ONLY as a JSON array of strings (e.g. ["insight 1", "insigh
       chartType: aiResponse.chartType,
       xAxisLabel: aiResponse.xAxisLabel,
       yAxisLabel: aiResponse.yAxisLabel,
-      insights: insights
+      insights: insights,
+      isPredictive: isPredictive,
+      forecastError: forecastError
     });
   } catch (error: any) {
     console.error("Query Error:", error);

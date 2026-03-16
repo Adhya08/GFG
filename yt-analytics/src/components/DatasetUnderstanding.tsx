@@ -30,73 +30,75 @@ export default function DatasetUnderstanding({
   onSelectSuggestion,
 }: DatasetUnderstandingProps) {
   return (
-    <div className="max-w-4xl mx-auto h-full overflow-y-auto p-8 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
-      <div className="flex items-center justify-between mb-8">
+    <div className="max-w-4xl mx-auto h-full overflow-y-auto p-8 scrollbar-hide">
+      <div className="flex items-center justify-between mb-10">
         <div>
-          <h2 className="text-3xl font-bold text-white flex items-center gap-3">
-            <CheckCircle2 className="w-8 h-8 text-emerald-400" />
-            Dataset Uploaded Successfully
+          <h2 className="text-4xl font-black text-white flex items-center gap-4 tracking-tight">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#33ffcc] to-[#00d2ff] flex items-center justify-center shadow-lg shadow-teal-500/20">
+               <CheckCircle2 className="w-7 h-7 text-[#0d0a1a]" />
+            </div>
+            DATA SOURCE SYNCED
           </h2>
-          <p className="text-slate-400 mt-2">Let&apos;s explore the structure of your data.</p>
+          <p className="text-slate-500 mt-2 font-medium">Neural mapping of your dataset structure complete.</p>
         </div>
         <button
           onClick={onFinish}
-          className="px-6 py-2.5 bg-indigo-500 hover:bg-indigo-400 text-white rounded-xl font-medium transition-all shadow-lg shadow-indigo-500/20 flex items-center gap-2"
+          className="px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-2xl font-bold transition-all shadow-xl shadow-indigo-500/20 flex items-center gap-2 group"
         >
-          Go to Dashboard <ArrowRight className="w-4 h-4" />
+          Initialize Dashboard <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        <div className="bg-white/5 border border-white/10 p-6 rounded-2xl backdrop-blur-sm">
-          <div className="w-10 h-10 bg-indigo-500/10 rounded-lg flex items-center justify-center mb-4 border border-indigo-500/20">
-            <Table className="w-5 h-5 text-indigo-400" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div className="bg-[#1c1a2e]/50 border border-white/5 p-8 rounded-[2rem] relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+             <Table className="w-16 h-16" />
           </div>
-          <h3 className="text-sm font-medium text-slate-400 uppercase tracking-wider mb-1">Rows</h3>
-          <p className="text-3xl font-bold text-white">{summary.rowCount.toLocaleString()}</p>
+          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Total Records</h3>
+          <p className="text-4xl font-black text-white">{summary.rowCount.toLocaleString()}</p>
         </div>
         
-        <div className="bg-white/5 border border-white/10 p-6 rounded-2xl backdrop-blur-sm">
-          <div className="w-10 h-10 bg-cyan-500/10 rounded-lg flex items-center justify-center mb-4 border border-cyan-500/20">
-            <Database className="w-5 h-5 text-cyan-400" />
+        <div className="bg-[#1c1a2e]/50 border border-white/5 p-8 rounded-[2rem] relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+             <Database className="w-16 h-16" />
           </div>
-          <h3 className="text-sm font-medium text-slate-400 uppercase tracking-wider mb-1">Columns</h3>
-          <p className="text-3xl font-bold text-white">{summary.columnCount}</p>
+          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Data Points</h3>
+          <p className="text-4xl font-black text-[#00d2ff]">{summary.columnCount}</p>
         </div>
 
-        <div className="bg-white/5 border border-white/10 p-6 rounded-2xl backdrop-blur-sm">
-          <div className="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center mb-4 border border-emerald-500/20">
-            <Info className="w-5 h-5 text-emerald-400" />
+        <div className="bg-[#1c1a2e]/50 border border-white/5 p-8 rounded-[2rem] relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+             <Info className="w-16 h-16" />
           </div>
-          <h3 className="text-sm font-medium text-slate-400 uppercase tracking-wider mb-1">Status</h3>
-          <p className="text-xl font-bold text-emerald-400">Ready for Analysis</p>
+          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Engine Status</h3>
+          <p className="text-2xl font-black text-[#33ffcc]">OPTIMIZED</p>
         </div>
       </div>
 
-      <div className="mb-10">
-        <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-          <Database className="w-5 h-5 text-indigo-400" />
-          Detected Column Types
+      <div className="mb-12">
+        <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
+          <div className="w-1.5 h-6 bg-[#9d50bb] rounded-full" />
+          ARCHITECTURAL SCHEMA
         </h3>
-        <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-sm">
+        <div className="bg-[#1c1a2e]/30 border border-white/5 rounded-[2rem] overflow-hidden backdrop-blur-xl">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-white/10 bg-white/5">
-                <th className="px-6 py-4 text-sm font-semibold text-slate-300">Column Name</th>
-                <th className="px-6 py-4 text-sm font-semibold text-slate-300">Detected Type</th>
+              <tr className="border-b border-white/5 bg-white/2">
+                <th className="px-8 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest">Property</th>
+                <th className="px-8 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest">Type Class</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/10">
+            <tbody className="divide-y divide-white/5">
               {columnTypes.map((col, idx) => (
-                <tr key={idx} className="hover:bg-white/5 transition-colors">
-                  <td className="px-6 py-4 text-sm text-slate-200 font-mono italic">{col.name}</td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${
-                      col.type === "date" ? "bg-amber-500/10 border-amber-500/30 text-amber-400" :
-                      col.type === "numeric" ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400" :
-                      col.type === "categorical" ? "bg-indigo-500/10 border-indigo-500/30 text-indigo-400" :
-                      col.type === "boolean" ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" :
-                      "bg-slate-500/10 border-slate-500/30 text-slate-400"
+                <tr key={idx} className="hover:bg-white/2 transition-colors group">
+                  <td className="px-8 py-5 text-sm text-slate-300 font-mono tracking-tight group-hover:text-white">{col.name}</td>
+                  <td className="px-8 py-5">
+                    <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-tighter border ${
+                      col.type === "date" ? "bg-amber-500/10 border-amber-500/20 text-amber-500" :
+                      col.type === "numeric" ? "bg-[#00d2ff1a] border-[#00d2ff33] text-[#00d2ff]" :
+                      col.type === "categorical" ? "bg-[#9d50bb1a] border-[#9d50bb33] text-[#9d50bb]" :
+                      col.type === "boolean" ? "bg-[#33ffcc1a] border-[#33ffcc33] text-[#33ffcc]" :
+                      "bg-slate-500/10 border-slate-500/20 text-slate-500"
                     }`}>
                       {col.type}
                     </span>
@@ -109,21 +111,21 @@ export default function DatasetUnderstanding({
       </div>
 
       <div>
-        <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-          <Lightbulb className="w-5 h-5 text-amber-400" />
-          Suggested Analytics Questions
+        <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
+           <div className="w-1.5 h-6 bg-[#ff2d95] rounded-full" />
+           PREDICTIVE ANALYTICS
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {suggestions.map((suggestion, idx) => (
             <button
               key={idx}
               onClick={() => onSelectSuggestion(suggestion)}
-              className="text-left p-4 rounded-xl bg-white/5 border border-white/10 hover:border-indigo-500/50 hover:bg-indigo-500/10 transition-all group flex items-start gap-3"
+              className="text-left p-5 rounded-[1.5rem] bg-[#1c1a2e]/40 border border-white/5 hover:border-indigo-500/40 hover:bg-indigo-500/10 transition-all group flex items-start gap-4"
             >
-              <div className="mt-1 w-5 h-5 rounded-full bg-slate-800 flex items-center justify-center shrink-0 border border-white/10 group-hover:bg-indigo-500 group-hover:border-indigo-500 transition-colors">
-                <span className="text-[10px] font-bold text-white opacity-40 group-hover:opacity-100">?</span>
+              <div className="mt-1 w-6 h-6 rounded-lg bg-slate-800 flex items-center justify-center shrink-0 border border-white/5 group-hover:bg-indigo-600 group-hover:border-indigo-600 transition-colors">
+                <Lightbulb className="w-3.5 h-3.5 text-slate-500 group-hover:text-white transition-colors" />
               </div>
-              <span className="text-sm text-slate-300 group-hover:text-white transition-colors">{suggestion}</span>
+              <span className="text-sm font-medium text-slate-400 group-hover:text-white transition-colors">{suggestion}</span>
             </button>
           ))}
         </div>
