@@ -79,3 +79,25 @@ body {
 .theme-transition * {
   transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
 }
+
+/* Tooltip Styles */
+.tooltip-container {
+  @apply relative;
+}
+
+.tooltip-text {
+  @apply invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-300 scale-95 group-hover:scale-100;
+  @apply absolute left-full ml-3 px-3 py-1.5 bg-brand-sidebar border border-brand-border text-white text-[10px] font-black uppercase tracking-widest whitespace-nowrap rounded-lg shadow-2xl z-[100] pointer-events-none;
+}
+
+.tooltip-top .tooltip-text {
+  @apply left-1/2 -translate-x-1/2 bottom-full ml-0 mb-3;
+}
+
+.tooltip-bottom .tooltip-text {
+  @apply left-1/2 -translate-x-1/2 top-full ml-0 mt-3;
+}
+
+.tooltip-right .tooltip-text {
+  @apply left-full top-1/2 -translate-y-1/2 ml-3;
+}

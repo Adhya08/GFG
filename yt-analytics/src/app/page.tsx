@@ -244,13 +244,15 @@ export default function Home() {
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Passcode</label>
                   <input required type="password" placeholder="••••••••" className="w-full mt-2 bg-brand-bg border border-brand-border rounded-xl px-5 py-4 focus:outline-none focus:border-indigo-500/50 shadow-inner text-sm placeholder:text-slate-600" />
                </div>
-               <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl py-4 mt-8 transition-all shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2 group">
+               <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl py-4 mt-8 transition-all shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2 group relative tooltip-top">
                  Authenticate <Lock className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                 <span className="tooltip-text">Verify Operations Agent</span>
                </button>
             </form>
          </div>
-         <button onClick={toggleTheme} className="absolute top-8 right-8 w-10 h-10 rounded-full glass flex items-center justify-center text-slate-400 hover:text-indigo-400 border border-brand-border transition-all z-20">
+         <button onClick={toggleTheme} className="absolute top-8 right-8 w-10 h-10 rounded-full glass flex items-center justify-center text-slate-400 hover:text-indigo-400 border border-brand-border transition-all z-20 group tooltip-bottom">
             {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            <span className="tooltip-text">Switch to {theme === 'dark' ? 'Light' : 'Dark'} Mode</span>
          </button>
       </div>
     );
@@ -265,13 +267,21 @@ export default function Home() {
         </div>
         
         <nav className="flex-1 flex flex-col gap-8">
-          {[HomeIcon, LayoutGrid, PieChart, TrendingUp, Layers, HelpCircle].map((Icon, i) => (
+          {[
+            { Icon: HomeIcon, label: 'Home' },
+            { Icon: LayoutGrid, label: 'Dashboard' },
+            { Icon: PieChart, label: 'Reports' },
+            { Icon: TrendingUp, label: 'Market Trends' },
+            { Icon: Layers, label: 'Data Models' },
+            { Icon: HelpCircle, label: 'Help & FAQ' }
+          ].map(({ Icon, label }, i) => (
             <button 
               key={i} 
               onClick={() => handleNavClick(i)}
-              className={`p-3 rounded-xl transition-all group relative ${activeNav === i ? 'bg-indigo-500/10 text-indigo-400' : 'text-slate-500 hover:text-indigo-400 hover:bg-white/5'}`}
+              className={`p-3 rounded-xl transition-all group relative tooltip-right ${activeNav === i ? 'bg-indigo-500/10 text-indigo-400' : 'text-slate-500 hover:text-indigo-400 hover:bg-white/5'}`}
             >
               <Icon className="w-6 h-6 transition-transform group-hover:scale-110" />
+              <span className="tooltip-text">{label}</span>
               {activeNav === i && <div className="absolute left-[-20px] top-1/2 -translate-y-1/2 w-1.5 h-6 bg-indigo-500 rounded-r-full shadow-lg shadow-indigo-500/50" />}
             </button>
           ))}
@@ -279,9 +289,10 @@ export default function Home() {
 
         <button 
           onClick={handleLogout}
-          className="p-3 text-slate-500 hover:text-red-400 hover:bg-red-400/5 rounded-xl transition-all group"
+          className="p-3 text-slate-500 hover:text-red-400 hover:bg-red-400/5 rounded-xl transition-all group relative tooltip-right"
         >
           <LogOut className="w-6 h-6 group-hover:rotate-12 transition-transform" />
+          <span className="tooltip-text">Terminate Session</span>
         </button>
       </aside>
 
@@ -308,14 +319,16 @@ export default function Home() {
            <div className="flex items-center gap-6">
               <button 
                 onClick={toggleTheme}
-                className="w-10 h-10 rounded-full glass flex items-center justify-center text-indigo-400 hover:text-indigo-300 transition-all shadow-lg hover:scale-105 active:scale-95 border-brand-border"
+                className="w-10 h-10 rounded-full glass flex items-center justify-center text-indigo-400 hover:text-indigo-300 transition-all shadow-lg hover:scale-105 active:scale-95 border-brand-border group tooltip-bottom"
               >
                 {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                <span className="tooltip-text text-center">Toggle Theme</span>
               </button>
               
-              <button className="relative text-slate-400 hover:text-white transition-colors">
+              <button className="relative text-slate-400 hover:text-white transition-colors group tooltip-bottom">
                 <Bell className="w-5 h-5" />
                 <span className="absolute top-0 right-0 w-2 h-2 bg-[#ff2d95] rounded-full ring-2 ring-brand-sidebar" />
+                <span className="tooltip-text">Notifications</span>
               </button>
 
               <div className="flex items-center gap-3 pl-6 border-l border-brand-border">
@@ -443,8 +456,9 @@ export default function Home() {
                          placeholder="Ask something..." 
                          className="w-full bg-brand-bg border border-brand-border rounded-2xl px-5 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 pr-14 placeholder:text-slate-600 shadow-inner"
                        />
-                       <button className="absolute right-2 top-2 p-2.5 bg-indigo-600 rounded-xl hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 transition-all disabled:opacity-50">
+                       <button className="absolute right-2 top-2 p-2.5 bg-indigo-600 rounded-xl hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 transition-all disabled:opacity-50 group tooltip-top">
                           <Send className="w-4 h-4" />
+                          <span className="tooltip-text">Execute AI Query</span>
                        </button>
                     </form>
                  </div>
@@ -472,15 +486,17 @@ export default function Home() {
                           />
                            <button 
                             onClick={() => fileInputRef.current?.click()}
-                            className="flex items-center gap-2 px-5 py-2.5 bg-brand-sidebar border border-brand-border rounded-xl hover:bg-white/5 transition-all text-sm font-semibold text-slate-300 shadow-lg"
+                            className="flex items-center gap-2 px-5 py-2.5 bg-brand-sidebar border border-brand-border rounded-xl hover:bg-white/5 transition-all text-sm font-semibold text-slate-300 shadow-lg group tooltip-bottom"
                           >
                             <Upload className="w-4 h-4 text-indigo-400" /> New Source
+                            <span className="tooltip-text">Ingest CSV Data</span>
                           </button>
                           <button 
                              onClick={exportPDF}
-                             className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl hover:from-indigo-500 hover:to-purple-500 transition-all text-sm font-semibold text-white shadow-xl shadow-indigo-500/20"
+                             className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl hover:from-indigo-500 hover:to-purple-500 transition-all text-sm font-semibold text-white shadow-xl shadow-indigo-500/20 group tooltip-bottom"
                           >
                              <FileDown className="w-4 h-4" /> Download PDF
+                             <span className="tooltip-text">Export Business Report</span>
                           </button>
                        </div>
                     </div>
