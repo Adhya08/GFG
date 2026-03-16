@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { Send, BarChart2, MessageSquare, Database, ArrowRight, Upload, AlertCircle } from "lucide-react";
+import { useState, useRef } from "react";
+import { Send, BarChart2, MessageSquare, Database, ArrowRight, Upload, AlertCircle, FileDown } from "lucide-react";
 import ChartRenderer from "@/components/ChartRenderer";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 export default function Home() {
   const [query, setQuery] = useState("");
@@ -10,6 +12,56 @@ export default function Home() {
   const [history, setHistory] = useState<any[]>([]);
   const [activeChart, setActiveChart] = useState<any | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const chartContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setLoading(true);
+    setErrorMsg(null);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      
+      alert(data.message || "File uploaded successfully!");
+    } catch (err: any) {
+      setErrorMsg(err.message);
+    } finally {
+      setLoading(false);
+      // Reset input
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const exportPDF = async () => {
+    if (!activeChart || !chartContainerRef.current) {
+        alert("Please generate a chart first!");
+        return;
+    }
+    try {
+        const canvas = await html2canvas(chartContainerRef.current, { scale: 2, backgroundColor: "#0f1115" });
+        const imgData = canvas.toDataURL("image/png");
+        const pdf = new jsPDF("landscape", "mm", "a4");
+        
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        
+        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+        pdf.save("Analytics_Dashboard_Export.pdf");
+    } catch (err) {
+        console.error("Failed to export PDF", err);
+        alert("Failed to export PDF.");
+    }
+  };
 
   const predefinedQueries = [
     "Show total views by category",
@@ -41,6 +93,7 @@ export default function Home() {
         chartType: data.chartType,
         xAxisLabel: data.xAxisLabel,
         yAxisLabel: data.yAxisLabel,
+        insights: data.insights || [],
       };
 
       setHistory([...history, insight]);
@@ -167,18 +220,29 @@ export default function Home() {
            <div className="p-4 border-b border-white/10 flex justify-between items-center bg-black/20">
               <h2 className="font-semibold text-slate-200">Interactive Dashboard</h2>
               <div className="flex gap-2">
-                <button className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium bg-white/5 border border-white/10 rounded-md hover:bg-white/10 transition-colors text-slate-300">
+                <input 
+                  type="file" 
+                  accept=".csv" 
+                  ref={fileInputRef} 
+                  onChange={handleFileUpload} 
+                  className="hidden" 
+                />
+                <button 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium bg-white/5 border border-white/10 rounded-md hover:bg-white/10 transition-colors text-slate-300">
                   <Upload className="w-3.5 h-3.5" /> Upload CSV
                 </button>
-                <button className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium bg-indigo-500 text-white rounded-md hover:bg-indigo-400 transition-colors shadow-lg shadow-indigo-500/20">
-                  Export PDF
+                <button 
+                  onClick={exportPDF}
+                  className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium bg-indigo-500 text-white rounded-md hover:bg-indigo-400 transition-colors shadow-lg shadow-indigo-500/20">
+                  <FileDown className="w-3.5 h-3.5" /> Export PDF
                 </button>
               </div>
            </div>
            
            <div className="flex-1 p-6 relative">
               {activeChart ? (
-                <div className="h-full w-full bg-slate-900/50 rounded-xl border border-white/5 p-4 flex flex-col">
+                <div ref={chartContainerRef} className="h-full w-full bg-slate-900/50 rounded-xl border border-white/5 p-4 flex flex-col">
                   <div className="flex justify-between items-center mb-6">
                     <div>
                       <h3 className="text-lg font-medium text-white">{activeChart.question}</h3>
@@ -193,6 +257,22 @@ export default function Home() {
                       yAxisLabel={activeChart.yAxisLabel} 
                     />
                   </div>
+                  
+                  {activeChart.insights && activeChart.insights.length > 0 && (
+                    <div className="mt-6 p-5 bg-indigo-500/5 border border-indigo-500/20 rounded-xl max-h-56 overflow-y-auto">
+                        <h4 className="text-sm font-semibold text-indigo-300 mb-3 flex items-center gap-2">
+                            <AlertCircle className="w-4 h-4" /> Analyst Insights
+                        </h4>
+                        <ul className="space-y-2 text-sm text-slate-300">
+                           {activeChart.insights.map((insightText: string, idx: number) => (
+                             <li key={idx} className="flex items-start gap-2">
+                               <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 mt-1.5 shrink-0" />
+                               <span className="leading-relaxed">{insightText}</span>
+                             </li>
+                           ))}
+                        </ul>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="h-full w-full flex flex-col items-center justify-center text-slate-500 border-2 border-dashed border-white/5 rounded-2xl">

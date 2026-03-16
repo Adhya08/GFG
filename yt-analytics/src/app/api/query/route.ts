@@ -81,13 +81,53 @@ Return the result STRICTLY as a JSON object (and nothing else, no markdown) in t
         return NextResponse.json({ error: "Failed to execute generated SQL: " + e.message, generatedSql: aiResponse.sql }, { status: 400 });
     }
 
-    // 3. Return results
+    // 3. Prompt Gemini to generate insights based on the data
+    const insightPrompt = `
+You are a senior data analyst.
+Your job is to analyze query results and generate clear insights.
+
+Focus on:
+- trends
+- peaks
+- drops
+- averages
+- anomalies
+
+Do NOT describe the chart visually.
+Instead, explain the key insights in business language.
+Keep the insights short, precise, and data-driven.
+Return 3-5 bullet point insights based on the following data data.
+
+User's original question: "${query}"
+
+Data:
+${JSON.stringify(dbData.slice(0, 50))}
+
+Return your response ONLY as a JSON array of strings (e.g. ["insight 1", "insight 2"]). No markdown blocks outside the JSON array.
+`;
+    
+    let insights: string[] = [];
+    try {
+        const insightResult = await model.generateContent(insightPrompt);
+        let insightText = insightResult.response.text().trim();
+        if (insightText.startsWith("\`\`\`json")) {
+            insightText = insightText.replace(/^\`\`\`json/, "").replace(/\`\`\`$/, "").trim();
+        } else if (insightText.startsWith("\`\`\`")) {
+            insightText = insightText.replace(/^\`\`\`/, "").replace(/\`\`\`$/, "").trim();
+        }
+        insights = JSON.parse(insightText);
+    } catch(e) {
+        console.error("Failed to generate insights", e);
+    }
+
+    // 4. Return results
     return NextResponse.json({
       data: dbData,
       sql: aiResponse.sql,
       chartType: aiResponse.chartType,
       xAxisLabel: aiResponse.xAxisLabel,
       yAxisLabel: aiResponse.yAxisLabel,
+      insights: insights
     });
   } catch (error: any) {
     console.error("Query Error:", error);
