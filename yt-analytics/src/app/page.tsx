@@ -100,7 +100,8 @@ export default function Home() {
       setDatasetDetails({
         summary: data.summary,
         columnTypes: data.columnTypes,
-        suggestions: data.suggestions
+        suggestions: data.suggestions,
+        quality: data.dataQuality
       });
       setShowUnderstanding(true);
     } catch (err: any) {
@@ -158,7 +159,7 @@ export default function Home() {
            pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
         }
 
-        pdf.save("InsightAI_Analytics_Report.pdf");
+        pdf.save("DashTalk_Analytics_Report.pdf");
     } catch (err) {
         console.error("Failed to export PDF", err);
         alert("Failed to export complete report PDF.");
@@ -230,7 +231,7 @@ export default function Home() {
                <div className="w-16 h-16 bg-gradient-to-tr from-[#ff2d95] to-[#9d50bb] rounded-2xl flex items-center justify-center shadow-lg shadow-pink-500/20 mb-6">
                  <BarChart2 className="w-8 h-8 text-white" />
                </div>
-               <h1 className="text-3xl font-black text-center tracking-tight mb-2">InsightAI</h1>
+               <h1 className="text-3xl font-black text-center tracking-tight mb-2">DashTalk</h1>
                <p className="text-slate-500 text-sm text-center">Sign in to access secure dashboard streams</p>
             </div>
             
@@ -340,7 +341,7 @@ export default function Home() {
                <div className="w-24 h-24 rounded-3xl bg-gradient-to-tr from-[#ff2d95] to-[#9d50bb] flex items-center justify-center shadow-lg shadow-pink-500/20 mb-8 z-10">
                   <BarChart2 className="w-12 h-12 text-white" />
                </div>
-               <h1 className="text-5xl font-black mb-4 z-10 tracking-tight">Welcome to InsightAI</h1>
+               <h1 className="text-5xl font-black mb-4 z-10 tracking-tight">Welcome to DashTalk</h1>
                <p className="text-xl text-slate-400 max-w-2xl mb-10 z-10">
                   Initialize your data streams, run advanced AI models, and visualize your organizational metrics in real-time.
                </p>
@@ -492,6 +493,7 @@ export default function Home() {
                                 summary={datasetDetails.summary}
                                 columnTypes={datasetDetails.columnTypes}
                                 suggestions={datasetDetails.suggestions}
+                                quality={datasetDetails.quality}
                                 onFinish={() => setShowUnderstanding(false)}
                                 onSelectSuggestion={onSelectSuggestion}
                               />
@@ -778,7 +780,7 @@ export default function Home() {
                       { icon: <Upload className="w-5 h-5"/>, q: "How do I upload custom data?", a: "Navigate to the Interactive Insights (second icon) and use the 'New Source' button to upload any valid CSV file. The system automatically maps the schema and spins up an accelerated in-memory SQL database for direct querying." },
                       { icon: <FileDown className="w-5 h-5"/>, q: "Can I export my charts?", a: "Yes. Once a high-fidelity chart is rendered in the visualization panel, click the 'Download PDF' button at the top right. It captures a vector-grade screenshot of the current canvas elements." },
                       { icon: <MessageSquare className="w-5 h-5"/>, q: "How does the AI Assistant work?", a: "The neural agent maintains full context of your dataset's columns and data types. Ask a plain-text question (e.g., 'Show me views by language'), and it writes SQL to extract the answer, dynamically selecting robust chart types (bar, line, scatter) automatically." },
-                      { icon: <Sun className="w-5 h-5"/>, q: "Does this support dynamic themes?", a: "The InsightAI engine sports fully reactive CSS variable theming. Use the toggle in the global header to switch instantly between 'Cyberpunk Night' and high-contrast 'Solar Light'." }
+                      { icon: <Sun className="w-5 h-5"/>, q: "Does this support dynamic themes?", a: "The DashTalk engine sports fully reactive CSS variable theming. Use the toggle in the global header to switch instantly between 'Cyberpunk Night' and high-contrast 'Solar Light'." }
                    ].map((faq, i) => (
                       <div key={i} className="bg-white/5 border border-brand-border p-8 rounded-[2rem] hover:bg-white/10 transition-colors shadow-inner flex flex-col items-start">
                          <div className="w-10 h-10 bg-brand-sidebar rounded-xl flex items-center justify-center border border-brand-border mb-6 text-indigo-400">
@@ -799,9 +801,124 @@ export default function Home() {
                 </div>
              </div>
           )}
-        </div>
+         </div>
+
+         {/* Hidden PDF Report Container */}
+         {exportingReport && reportData && (
+            <div className="fixed top-[-9999px] left-[-9999px] z-[-1] w-[794px] bg-[#0f1115] text-slate-200" ref={reportRef}>
+                {/* PAGE 1: Intro & Summary */}
+                <div className="report-page h-[1123px] p-12 flex flex-col justify-between border-b border-white/10">
+                   <div>
+                      <h1 className="text-4xl font-black text-indigo-400 mb-2">DashTalk Analytics Report</h1>
+                      <p className="text-sm text-slate-400 mb-8 font-mono">Generated On: {new Date().toLocaleDateString()} | Dataset: Analyzed Telemetry</p>
+                      <p className="text-lg text-slate-300 italic mb-10 border-l-4 border-indigo-500 pl-4 font-serif">"AI-generated insights and visual analytics from uploaded dataset."</p>
+
+                      {/* Dataset Overview & Stats */}
+                      <div className="grid grid-cols-2 gap-8 mb-10">
+                          <div className="bg-white/5 p-6 rounded-2xl border border-white/10 shadow-lg">
+                             <h3 className="font-bold text-lg mb-4 text-emerald-400 border-b border-emerald-500/20 pb-2">Dataset Overview</h3>
+                             <ul className="space-y-3 text-sm text-slate-300">
+                                <li className="flex justify-between"><strong>Rows Analyzed:</strong> <span>{datasetDetails?.summary.rowCount || 0}</span></li>
+                                <li className="flex justify-between"><strong>Total Columns:</strong> <span>{datasetDetails?.summary.columnCount || 0}</span></li>
+                             </ul>
+                          </div>
+                          <div className="bg-white/5 p-6 rounded-2xl border border-white/10 shadow-lg">
+                             <h3 className="font-bold text-lg mb-4 text-pink-400 border-b border-pink-500/20 pb-2">Key Statistics</h3>
+                             <ul className="space-y-3 text-sm text-slate-300">
+                                <li className="flex justify-between"><strong>Total Videos:</strong> <span>{reportData.stats.totalVideos}</span></li>
+                                <li className="flex justify-between"><strong>Avg Likes:</strong> <span>{reportData.stats.avgLikes.toLocaleString()}</span></li>
+                                <li className="flex justify-between"><strong>Avg Views:</strong> <span>{reportData.stats.avgViews.toLocaleString()}</span></li>
+                                <li className="flex justify-between"><strong>Top Video:</strong> <span className="font-mono text-indigo-300">{reportData.stats.topVideo}</span></li>
+                                <li className="flex justify-between"><strong>Peak Date:</strong> <span>{reportData.stats.peakDate}</span></li>
+                             </ul>
+                          </div>
+                      </div>
+
+                      {/* Summary */}
+                      <div className="mb-10 bg-indigo-500/5 p-8 rounded-3xl border border-indigo-500/20 shadow-inner">
+                        <h3 className="text-2xl font-bold mb-6 text-indigo-400 flex items-center gap-3">
+                           <div className="w-2 h-8 bg-indigo-500 rounded-full" /> AI Report Summary
+                        </h3>
+                        <ul className="space-y-4 text-slate-300">
+                           {reportData.summary.map((point: string, i: number) => (
+                              <li key={i} className="flex gap-4">
+                                 <span className="text-indigo-400 font-bold opacity-50 block mt-0.5">0{i + 1}</span>
+                                 <p className="leading-relaxed">{point}</p>
+                              </li>
+                           ))}
+                        </ul>
+                      </div>
+
+                      {/* Recommendations */}
+                      <div className="bg-emerald-500/5 p-8 rounded-3xl border border-emerald-500/20 shadow-inner">
+                        <h3 className="text-2xl font-bold mb-6 text-emerald-400 flex items-center gap-3">
+                           <div className="w-2 h-8 bg-emerald-500 rounded-full" /> Strategic Recommendations
+                        </h3>
+                        <ul className="space-y-4 text-slate-300">
+                           {reportData.recommendations.map((point: string, i: number) => (
+                              <li key={i} className="flex gap-4">
+                                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0 mt-2" />
+                                 <p className="leading-relaxed font-medium">{point}</p>
+                              </li>
+                           ))}
+                        </ul>
+                      </div>
+                   </div>
+                   <div className="text-center text-xs text-slate-600 font-mono tracking-widest pt-8 border-t border-white/10 mt-8">PAGE 1 • DASHTALK AUTOMATED INTELLIGENCE</div>
+                </div>
+
+                {/* PAGE 2+: Charts & Insights */}
+                {history.map((h: any, i: number) => (
+                  <div key={i + 1} className="report-page h-[1123px] p-12 flex flex-col justify-between border-b border-white/10 page-break-after">
+                     <div>
+                       <div className="mb-8 border-b border-white/10 pb-6">
+                           <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                               <BarChart2 className="w-4 h-4 text-indigo-500" /> Analytical Query Result
+                           </p>
+                           <h3 className="text-3xl font-black text-white leading-tight">{h.question}</h3>
+                           <p className="text-sm text-indigo-400 mt-2 font-medium capitalize">
+                              Generated {h.chartType} Chart {h.isPredictive && "• Includes Predictive Forecasting"}
+                           </p>
+                       </div>
+                       
+                       <div className="h-[450px] bg-brand-bg rounded-3xl p-8 mb-8 border border-white/10 shadow-2xl relative">
+                           {h.isPredictive && (
+                               <div className="absolute top-4 right-4 bg-pink-500/20 text-pink-400 text-xs px-3 py-1.5 rounded-full font-bold uppercase tracking-wider border border-pink-500/30">
+                                   Predictive Horizon Active
+                               </div>
+                           )}
+                           <ChartRenderer 
+                              type={h.chartType} 
+                              data={h.data} 
+                              xAxisLabel={h.xAxisLabel} 
+                              yAxisLabel={h.yAxisLabel} 
+                              theme="dark"
+                              disableAnimation={true}
+                           />
+                       </div>
+                       
+                       {h.insights && h.insights.length > 0 && (
+                         <div className="bg-gradient-to-br from-indigo-900/40 to-purple-900/40 border border-indigo-500/30 p-8 rounded-3xl shadow-inner">
+                            <h4 className="font-bold text-xl text-indigo-300 mb-6 flex items-center gap-3">
+                               <div className="w-2 h-6 bg-indigo-400 rounded-full" /> AI Analyst Insights
+                            </h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                               {h.insights.map((insight: string, idx: number) => (
+                                 <div key={idx} className="bg-white/5 p-5 rounded-2xl border border-white/5">
+                                    <div className="w-6 h-6 rounded-md bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-xs font-black mb-3">{idx + 1}</div>
+                                    <p className="text-sm text-slate-300 leading-relaxed font-medium">{insight}</p>
+                                 </div>
+                               ))}
+                            </div>
+                         </div>
+                       )}
+                     </div>
+                     <div className="text-center text-xs text-slate-600 font-mono tracking-widest pt-8 border-t border-white/10">PAGE {i + 2} • DASHTALK AUTOMATED INTELLIGENCE</div>
+                  </div>
+                ))}
+            </div>
+         )}
       </section>
     </div>
   );
 }
-

@@ -111,6 +111,79 @@ export async function POST(req: NextRequest) {
           suggestions.push("Compare performance across different regions");
       }
 
+      // --- Data Quality Module ---
+      const qualityWarnings: { type: string; column?: string; message: string; severity: 'warning' | 'info' | 'critical' }[] = [];
+      let totalIssues = 0;
+
+      // 1. Missing Values & Type Consistency
+      columnTypes.forEach(col => {
+        const values = records.map(r => r[col.name]);
+        const missingCount = values.filter(v => v === null || v === undefined || v === "").length;
+        if (missingCount > 0) {
+          const percentVal = (missingCount / rowCount) * 100;
+          qualityWarnings.push({
+            type: 'missing',
+            column: col.name,
+            message: `${missingCount} missing values (${percentVal.toFixed(1)}%)`,
+            severity: percentVal > 20 ? 'critical' : 'warning'
+          });
+          totalIssues += missingCount;
+        }
+
+        if (col.type === 'numeric') {
+          const nonNumericCount = values.filter(v => v !== "" && v !== null && isNaN(Number(v))).length;
+          if (nonNumericCount > 0) {
+            qualityWarnings.push({
+              type: 'type',
+              column: col.name,
+              message: `Contains ${nonNumericCount} non-numeric values`,
+              severity: 'critical'
+            });
+            totalIssues += nonNumericCount;
+          }
+        }
+      });
+
+      // 2. Outlier Detection (IQR Method)
+      columnTypes.filter(c => c.type === 'numeric').forEach(col => {
+        const values = records.map(r => Number(r[col.name])).filter(v => !isNaN(v)).sort((a, b) => a - b);
+        if (values.length > 4) {
+          const q1 = values[Math.floor(values.length * 0.25)];
+          const q3 = values[Math.floor(values.length * 0.75)];
+          const iqr = q3 - q1;
+          const lowerBound = q1 - 1.5 * iqr;
+          const upperBound = q3 + 1.5 * iqr;
+          const outliers = values.filter(v => v < lowerBound || v > upperBound);
+          if (outliers.length > 0) {
+            qualityWarnings.push({
+              type: 'outlier',
+              column: col.name,
+              message: `Detected ${outliers.length} potential outliers`,
+              severity: 'info'
+            });
+            totalIssues += outliers.length;
+          }
+        }
+      });
+
+      // 3. Duplicate Records
+      const stringifiedRows = records.map(r => JSON.stringify(r));
+      const uniqueRows = new Set(stringifiedRows);
+      const duplicateCount = stringifiedRows.length - uniqueRows.size;
+      if (duplicateCount > 0) {
+        qualityWarnings.push({
+          type: 'duplicate',
+          message: `${duplicateCount} duplicate rows detected`,
+          severity: 'warning'
+        });
+        totalIssues += duplicateCount;
+      }
+
+      // 4. Health Score Calculation
+      const maxPossibleIssues = rowCount * columnCount;
+      const penalty = (totalIssues / maxPossibleIssues) * 100;
+      const healthScore = Math.max(0, Math.min(100, Math.round(100 - penalty - (duplicateCount > 0 ? 5 : 0))));
+
       return NextResponse.json({
         success: true,
         message: `Successfully loaded ${records.length} analytics records.`,
@@ -120,7 +193,12 @@ export async function POST(req: NextRequest) {
             columnNames: columns
         },
         columnTypes,
-        suggestions: suggestions.slice(0, 5)
+        suggestions: suggestions.slice(0, 5),
+        dataQuality: {
+          score: healthScore,
+          warnings: qualityWarnings,
+          status: healthScore > 85 ? 'good' : healthScore > 60 ? 'moderate' : 'critical'
+        }
       });
     }
 
