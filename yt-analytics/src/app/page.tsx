@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { Send, BarChart2, MessageSquare, Database, ArrowRight, Upload, AlertCircle, FileDown } from "lucide-react";
 import ChartRenderer from "@/components/ChartRenderer";
+import DatasetUnderstanding from "@/components/DatasetUnderstanding";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
@@ -12,6 +13,9 @@ export default function Home() {
   const [history, setHistory] = useState<any[]>([]);
   const [activeChart, setActiveChart] = useState<any | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [showUnderstanding, setShowUnderstanding] = useState(false);
+  const [datasetDetails, setDatasetDetails] = useState<any>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chartContainerRef = useRef<HTMLDivElement>(null);
 
@@ -32,7 +36,12 @@ export default function Home() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       
-      alert(data.message || "File uploaded successfully!");
+      setDatasetDetails({
+        summary: data.summary,
+        columnTypes: data.columnTypes,
+        suggestions: data.suggestions
+      });
+      setShowUnderstanding(true);
     } catch (err: any) {
       setErrorMsg(err.message);
     } finally {
@@ -40,6 +49,12 @@ export default function Home() {
       // Reset input
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
+  };
+
+  const onSelectSuggestion = (q: string) => {
+    setQuery(q);
+    setShowUnderstanding(false);
+    handleQuery(q);
   };
 
   const exportPDF = async () => {
@@ -241,7 +256,15 @@ export default function Home() {
            </div>
            
            <div className="flex-1 p-6 relative">
-              {activeChart ? (
+              {showUnderstanding && datasetDetails ? (
+                <DatasetUnderstanding 
+                  summary={datasetDetails.summary}
+                  columnTypes={datasetDetails.columnTypes}
+                  suggestions={datasetDetails.suggestions}
+                  onFinish={() => setShowUnderstanding(false)}
+                  onSelectSuggestion={onSelectSuggestion}
+                />
+              ) : activeChart ? (
                 <div ref={chartContainerRef} className="h-full w-full bg-slate-900/50 rounded-xl border border-white/5 p-4 flex flex-col">
                   <div className="flex justify-between items-center mb-6">
                     <div>
@@ -281,6 +304,7 @@ export default function Home() {
                 </div>
               )}
            </div>
+
         </div>
 
       </main>

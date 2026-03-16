@@ -57,14 +57,80 @@ export async function POST(req: NextRequest) {
           );
         }
       })();
+
+      // Dataset Summary Logic
+      const rowCount = records.length;
+      const columns = Object.keys(records[0]);
+      const columnCount = columns.length;
+
+      // Heuristic Column Type Detection
+      const columnTypes = columns.map(col => {
+        const values = records.slice(0, Math.min(100, rowCount)).map(r => r[col]);
+        const sampleValue = values.find(v => v !== null && v !== undefined && v !== "");
+        
+        let type = "text";
+        if (sampleValue === undefined) type = "text";
+        else if (sampleValue === "true" || sampleValue === "false" || sampleValue === "0" || sampleValue === "1") {
+          // Check if all are boolean-like
+          const isBool = values.every(v => v === "true" || v === "false" || v === "0" || v === "1" || v === "" || v === null);
+          if (isBool) type = "boolean";
+        }
+        
+        if (type === "text" && !isNaN(Number(sampleValue)) && sampleValue !== "") {
+          type = "numeric";
+        } else if (type === "text" && !isNaN(Date.parse(sampleValue)) && String(sampleValue).length > 5) {
+          type = "date";
+        }
+        
+        // Categorical check
+        if (type === "text" || type === "numeric") {
+          const uniqueValues = new Set(values).size;
+          if (uniqueValues < rowCount * 0.2 && uniqueValues < 20) {
+            type = "categorical";
+          }
+        }
+
+        return { name: col, type };
+      });
+
+      // Suggested Questions Logic
+      const suggestions = [];
+      const dates = columnTypes.filter(c => c.type === "date").map(c => c.name);
+      const categoricals = columnTypes.filter(c => c.type === "categorical").map(c => c.name);
+      const numerics = columnTypes.filter(c => c.type === "numeric").map(c => c.name);
+
+      if (dates.length > 0 && numerics.length > 0) suggestions.push(`Show ${numerics[0]} trend over time`);
+      if (numerics.length >= 2) suggestions.push(`Compare ${numerics[0]} vs ${numerics[1]}`);
+      if (categoricals.length > 0 && numerics.length > 0) suggestions.push(`Show total ${numerics[0]} by ${categoricals[0]}`);
+      if (numerics.length > 0 && categoricals.length > 0) suggestions.push(`Which ${categoricals[0]} has the highest average ${numerics[0]}?`);
+      if (numerics.includes("sentiment_score")) suggestions.push("What is the overall sentiment distribution?");
+      else if (numerics.length > 0) suggestions.push(`Show distribution of ${numerics[0]}`);
+
+      if (suggestions.length < 5) {
+          suggestions.push("Show summary statistics for the dataset");
+          suggestions.push("Compare performance across different regions");
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: `Successfully loaded ${records.length} analytics records.`,
+        summary: {
+            rowCount,
+            columnCount,
+            columnNames: columns
+        },
+        columnTypes,
+        suggestions: suggestions.slice(0, 5)
+      });
     }
 
     return NextResponse.json({
       success: true,
-      message: `Successfully loaded ${records.length} analytics records from the uploaded CSV.`,
+      message: `The uploaded CSV was empty or has no records.`,
     });
   } catch (err: any) {
     console.error("Upload Error:", err);
     return NextResponse.json({ error: "Upload failed: " + err.message }, { status: 500 });
   }
 }
+
