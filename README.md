@@ -153,7 +153,7 @@ Example:
 | Frontend  | React.js, Next.js, TypeScript |
 | Backend   | Node.js / Go                  |
 | AI Engine | Gemini API                    |
-| Database  | PostgreSQL                    |
+| Database  | MySql                         |
 | Charts    | Plotly.js, Chart.js           |
 | Security  | JWT, RBAC, Encryption         |
 
